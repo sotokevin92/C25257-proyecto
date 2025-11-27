@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import {configDotenv} from "dotenv";
 import {inicializarFirebase} from "./firebase.js";
+import {productRoutes} from "./routes/productRoutes.js";
 
 configDotenv();
 
@@ -16,6 +17,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
+app.use('/products', productRoutes);
 app.get('/', (req, res) => res.send("We're up!"));
 
 app.listen(
