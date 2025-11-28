@@ -1,0 +1,12 @@
+{
+  "products_last_id": 1,
+  "products": [
+    {
+      "id": 1,
+      "name": "Mi primer producto",
+      "description": "Este es un producto de prueba, tiene hasta un lorem: ipsum",
+      "price": 100,
+      "image": "https://placecats.com/200/300"
+    }
+  ]
+}

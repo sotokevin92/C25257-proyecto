@@ -1,5 +1,6 @@
 import { promises as fs } from "fs";
 import { Product } from "../models/Product.js";
+import {ValidationError} from "../error/ValidationError.js";
 
 const DB_FILE = './db.json';
 const COLLECTION_NAME = 'products';
@@ -39,6 +40,7 @@ export const getAll = async () => {
     return await readCollection();
 }
 
+/** @returns {Promise<Product | null>} */
 export const getById = async (id) => {
     const product = (await getAll())
         .find(product => product.id === Number(id));
@@ -50,6 +52,7 @@ export const getById = async (id) => {
     return new Product(product);
 }
 
+/** @returns {Promise<Product>} */
 export const save = async (product) => {
     const products = await getAll();
 
@@ -65,8 +68,9 @@ export const save = async (product) => {
         id: Number(product.id || await getNewId())
     });
 
-    if (!newProduct.validate()) {
-        return false;
+    const validationErrors = newProduct.validate();
+    if (validationErrors.length) {
+        throw new ValidationError(`${validationErrors.join(' / ')}`);
     }
 
     products.splice(existingPos !== -1 ? existingPos : products.length, 0, newProduct);
@@ -76,6 +80,7 @@ export const save = async (product) => {
     return newProduct;
 }
 
+/** @returns {Promise<boolean>} */
 export const deleteById = async (id) => {
     const product = await getById(id);
 
