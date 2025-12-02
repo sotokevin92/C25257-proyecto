@@ -48,40 +48,45 @@ export const save = async (product) => {
     const db = getDb();
 
     // If updating existing product
-    if (product.id) {
-        const updatedProduct = new Product(product);
+    if (!product.id) {
+        const newProduct = new Product({ ...product });
 
-        const validationErrors = updatedProduct.validate();
+        const validationErrors = newProduct.validate();
         if (validationErrors.length) {
             throw new ValidationError(`${validationErrors.join(' / ')}`);
         }
 
-        const docRef = doc(db, COLLECTION_NAME, product.id);
-        await setDoc(docRef, {
-            name: updatedProduct.name,
-            description: updatedProduct.description,
-            price: updatedProduct.price,
-            image: updatedProduct.image
-        }, { merge: true });
+        const newDoc = { ...newProduct };
 
-        return updatedProduct;
+        // Discard ID - passing null will create the field in the document, passing undefined will result in exception
+        delete newDoc.id;
+
+        const colRef = collection(db, COLLECTION_NAME);
+        const docRef = await addDoc(colRef, newDoc);
+
+        newProduct.id = docRef.id;
+        return newProduct;
     }
 
-    const newProduct = new Product({ ...product });
+    const updatedProduct = await getById(product.id);
+    if (!updatedProduct) {
+        return null;
+    }
 
-    const validationErrors = newProduct.validate();
+    Object.keys(product).forEach(key => updatedProduct[key] = product[key]);
+
+    const validationErrors = updatedProduct.validate();
     if (validationErrors.length) {
         throw new ValidationError(`${validationErrors.join(' / ')}`);
     }
 
-    // Discard ID - passing null will create the field in the document, passing undefined will result in exception
-    const { id, ...newDoc } = { ...newProduct };
+    const updatedDoc = { ...updatedProduct };
+    delete updatedDoc.id;
 
-    const colRef = collection(db, COLLECTION_NAME);
-    const docRef = await addDoc(colRef, newDoc);
+    const docRef = doc(db, COLLECTION_NAME, product.id);
+    await setDoc(docRef, updatedDoc);
 
-    newProduct.id = docRef.id;
-    return newProduct;
+    return updatedProduct;
 }
 
 /** @returns {Promise<boolean>} */

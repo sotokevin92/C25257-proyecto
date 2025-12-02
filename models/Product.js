@@ -9,7 +9,7 @@ export class Product {
         this.id = id;
         this.name = name || '';
         this.description = description || '';
-        this.price = price || 0;
+        this.price = Number(price) || 0;
         this.image = image || 'https://via.placeholder.com/150';
     }
 
