@@ -6,7 +6,7 @@ export class Product {
     image;
 
     constructor({ id, name, description, price, image }) {
-        this.id = id || 0;
+        this.id = id;
         this.name = name || '';
         this.description = description || '';
         this.price = price || 0;
@@ -15,7 +15,6 @@ export class Product {
 
     validate() {
         return [
-                [ this.id > 0, 'El ID debe ser positivo.' ],
                 [ this.name.length > 0, 'El nombre no puede estar vacio.' ],
                 [ this.price > 0, 'El precio debe ser positivo.' ]
             ].filter(([ passed ]) => !passed)
