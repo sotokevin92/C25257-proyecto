@@ -3,8 +3,16 @@ import cors from 'cors';
 import {configDotenv} from "dotenv";
 import {inicializarFirebase} from "./firebase.js";
 import {productRoutes} from "./routes/productRoutes.js";
+import {authRoutes} from "./routes/authRoutes.js";
+import {jwtMiddleware} from "./middleware/jwtMiddleware.js";
 
 configDotenv();
+
+if (!process.env.JWT_SECRET) {
+    throw new Error(
+        'No se ha configurado el JWT_SECRET. Por favor, configure el archivo .env.'
+    );
+}
 
 const firebase = inicializarFirebase();
 if (firebase) {
@@ -17,20 +25,26 @@ app.use(cors({
 }));
 app.use(express.json());
 
-app.use('/products', productRoutes);
+app.use('/auth', authRoutes);
+app.use('/products', jwtMiddleware, productRoutes);
 app.get('/', (req, res) => res.send("We're up!"));
-
-app.use((err, _req, res, next) => {
-    if (err.code === 'VALIDATION_ERROR') {
-        return res.status(400).json({error: err.message});
-    }
-    next(err);
-});
 
 app.use((_req, res) => {
     return res.status(404).json({
         error: 'No encontrado.'
     });
+});
+
+app.use((err, _req, res, next) => {
+    switch(err.code) {
+        case 'AUTH_ERROR':
+            return res.status(401).json({error: 'No autorizado.', mensaje: err.message});
+        case 'VALIDATION_ERROR':
+            return res.status(400).json({error: err.message});
+        default:
+    }
+
+    next(err);
 });
 
 app.listen(
