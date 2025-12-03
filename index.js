@@ -10,13 +10,13 @@ configDotenv();
 
 if (!process.env.JWT_SECRET) {
     throw new Error(
-        'No se ha configurado el JWT_SECRET. Por favor, configure el archivo .env.'
+        'No se ha configurado el JWT_SECRET. Configurar el archivo .env'
     );
 }
 
 const firebase = inicializarFirebase();
-if (firebase) {
-    console.log(`Firebase OK - ${firebase.name}`);
+if (!firebase) {
+    throw new Error('No se inicializó Firebase. Revisar el archivo .env');
 }
 
 const app = express();
